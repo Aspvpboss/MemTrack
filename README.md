@@ -146,3 +146,41 @@ int main(void){
 
     return 0;
 }
+```
+
+# Building and Testing with CMake
+
+MemTrack provides modern CMake targets and CTest integration.
+
+### Build
+```bash
+cmake -B build -S .
+cmake --build build
+```
+
+### Run Tests
+```bash
+ctest --test-dir build --output-on-failure
+```
+
+Or run the unified test suite executable directly:
+```bash
+./build/tests/test_all
+```
+
+### Integration in CMake Projects
+MemTrack provides both header-only and precompiled library targets:
+
+```cmake
+# Header-only usage:
+target_link_libraries(your_target PRIVATE MemTrack::memtrack)
+
+# Or precompiled library usage:
+target_link_libraries(your_target PRIVATE MemTrack::memtrack_lib)
+```
+
+### CMake Options
+- `MEMTRACK_BUILD_TESTS` (Default: `ON`) - Build comprehensive unit tests
+- `MEMTRACK_BUILD_EXAMPLES` (Default: `ON`) - Build example binaries (`main.c` / `main.cpp`)
+- `MEMTRACK_WARNINGS_AS_ERRORS` (Default: `ON`) - Treat warnings as errors (`-Werror`)
+- `BUILD_SHARED_LIBS` (Default: `OFF`) - Build shared library instead of static
