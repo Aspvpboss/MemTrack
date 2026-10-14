@@ -1,4 +1,4 @@
-### MemTrack v1.2
+### MemTrack v1.3
 
 # Documentation
 
@@ -168,19 +168,34 @@ Or run the unified test suite executable directly:
 ./build/tests/test_all
 ```
 
-### Integration in CMake Projects
-MemTrack provides both header-only and precompiled library targets:
-
-```cmake
-# Header-only usage:
-target_link_libraries(your_target PRIVATE MemTrack::memtrack)
-
-# Or precompiled library usage:
-target_link_libraries(your_target PRIVATE MemTrack::memtrack_lib)
+### Install System-Wide (or User-Wide)
+To install system-wide on Linux (e.g. Fedora):
+```bash
+sudo cmake --install build
+sudo ldconfig  # update dynamic linker cache for libmemtrack.so
 ```
 
+Or install to user environment without root (`~/.local`):
+```bash
+cmake -B build -S . -DCMAKE_INSTALL_PREFIX=$HOME/.local
+cmake --build build
+cmake --install build
+```
+
+### Integration in CMake Projects (Shared Library Users)
+Installing into your environment is designed for **shared library users**. Once installed, other CMake projects on Fedora automatically detect MemTrack:
+
+```cmake
+find_package(MemTrack REQUIRED)
+
+# Dynamically links against libmemtrack.so (no MEMTRACK_IMPLEMENTATION needed in consumer code):
+target_link_libraries(your_target PRIVATE MemTrack::memtrack)
+```
+
+*(Non-shared users do not need to install anything or use `find_package` — they just copy `memtrack.h` into their project and define `MEMTRACK_IMPLEMENTATION` in one C file).*
+
 ### CMake Options
+- `MEMTRACK_BUILD_SHARED` (Default: `ON`) - Build MemTrack shared library (`.so` / `.dll`). When `OFF`, no compiled library is built.
 - `MEMTRACK_BUILD_TESTS` (Default: `ON`) - Build comprehensive unit tests
 - `MEMTRACK_BUILD_EXAMPLES` (Default: `ON`) - Build example binaries (`main.c` / `main.cpp`)
 - `MEMTRACK_WARNINGS_AS_ERRORS` (Default: `ON`) - Treat warnings as errors (`-Werror`)
-- `BUILD_SHARED_LIBS` (Default: `OFF`) - Build shared library instead of static

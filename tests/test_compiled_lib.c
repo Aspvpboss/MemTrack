@@ -1,9 +1,9 @@
-// Do NOT define MEMTRACK_IMPLEMENTATION - this tests linking against the precompiled static library
+// Do NOT define MEMTRACK_IMPLEMENTATION - this tests linking against the precompiled shared library
 #include "memtrack.h"
 #include "test_helpers.h"
 
 int main(void) {
-    printf("=== Running test_compiled_lib (Linking against precompiled library) ===\n");
+    printf("=== Running test_compiled_lib (Linking against precompiled shared library) ===\n");
 
     int res = MemTrack_Init(NULL, NULL, true, false);
     TEST_ASSERT_EQ(res, 0);
