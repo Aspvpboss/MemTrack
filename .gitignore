@@ -2,3 +2,7 @@
 *.exe
 .cache
 compile_commands.json
+build/
+build-*/
+bin/
+Testing/
