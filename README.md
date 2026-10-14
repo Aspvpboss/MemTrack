@@ -1,94 +1,75 @@
-### MemTrack v1.3
+# MemTrack v1.3
 
-# Documentation
+A thread-safe, configurable C memory allocation tracker and leak detector. MemTrack can be used as an **stb-style single-header library** (`memtrack.h`) or built and linked as a **shared library** via CMake.
 
-This library tracks allocations and can report memory leaks; furthermore, it can also
-get heap usage and automatically null pointers after freeing them and exiting the program if malloc fails.
+## Documentation
 
-This library does support multi-threading, read the function docs for more info
+### Compiler Macros
+Pass one of these flags to your compiler (e.g., `-DTRACK_ALLOCATIONS`) to configure MemTrack:
 
-I wrote this library in a way to configure it as you want. If you just want to track allocations when debugging, then only use the normal malloc and free during runtime you can do that. Or if you want it to null pointers when freed during runtime and check for malloc failure during runtime, in exchange for a very small performance hit.
-
-#### when compiling use the these macros to configure the library. I use gcc so I use -Dmacro_name to define a global macro when compiling
-
-### Compiler Macros 
-- #define STDLIB_ALLOCATIONS - this uses stdlib malloc and free 
-
-- #define TRACK_ALLOCATIONS - this uses my tracking malloc and free functions 
-
-- #define NDEBUG - this will disable printf logging
-
-- NO MACRO defined - this doesn't track allocations, however it still uses the safe malloc and free functions which allows for auto nulling pointers and exiting if malloc failure
-
-
-
-####  There are macros that you can configure memtrack to use your own functions instead of the default ones it uses
+- `#define STDLIB_ALLOCATIONS` - uses standard library `malloc` and `free` directly.
+- `#define TRACK_ALLOCATIONS` - uses MemTrack's tracking `malloc` and `free` functions.
+- `#define NDEBUG` - disables print logging.
+- **NO MACRO defined** - doesn't track allocations, but still uses the safe `malloc` and `free` wrappers (allowing for auto-nulling pointers and exiting on `malloc` failure).
 
 ### Function Macros
-- #define TRACK_PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
-- #define TRACK_MALLOC(size) malloc(size)
-- #define TRACK_REALLOC(mem, newsize) realloc(mem, newsize)
-- #define TRACK_FREE(ptr) free(ptr)
-- #define TRACK_STRLEN(str) strlen(str)
-- #define TRACK_STRCPY(dst, src) strcpy(dst, src)
-- #define TRACK_STRDUP(str) strdup(str)
-- #define TRACK_EXIT exit(EXIT_FAILURE)
-- #define TRACK_MUTEX_TYPE pthread_mutex_t 
-- #define TRACK_MUTEX_CREATE(mutex) pthread_mutex_init(&mutex, NULL)
-- #define TRACK_MUTEX_DESTROY(mutex) pthread_mutex_destroy(&mutex)
-- #define TRACK_MUTEX_LOCK(mutex) pthread_mutex_lock(mutex)
-- #define TRACK_MUTEX_UNLOCK(mutex) pthread_mutex_unlock(mutex)
+These are the macros you can configure to change what underlying functions MemTrack uses *(only works if you recompile the shared library or use the single-header library)*:
 
-# Initializing
+```c
+#define TRACK_PRINTF(fmt, ...)     fprintf(stderr, fmt, ##__VA_ARGS__)
+#define TRACK_MALLOC(size)         malloc(size)
+#define TRACK_REALLOC(mem, newsize) realloc(mem, newsize)
+#define TRACK_FREE(ptr)            free(ptr)
+#define TRACK_STRLEN(str)          strlen(str)
+#define TRACK_STRCPY(dst, src)     strcpy(dst, src)
+#define TRACK_STRDUP(str)          strdup(str)
+#define TRACK_EXIT                 exit(EXIT_FAILURE)
+#define TRACK_MUTEX_TYPE           pthread_mutex_t
+#define TRACK_MUTEX_CREATE(mutex)  pthread_mutex_init(&mutex, NULL)
+#define TRACK_MUTEX_DESTROY(mutex) pthread_mutex_destroy(&mutex)
+#define TRACK_MUTEX_LOCK(mutex)    pthread_mutex_lock(mutex)
+#define TRACK_MUTEX_UNLOCK(mutex)  pthread_mutex_unlock(mutex)
+```
 
-First, you must define the MEMTRACK_IMPLEMENTATION macro to paste the functions in, then include the memtrack header. You only need to define the MEMTRACK_IMPLEMENTATION once in one C file
+### Using MemTrack
 
-    #define MEMTRACK_IMPLEMENTATION 
-    #include "memtrack.h"
+If using `memtrack.h` as a single-header library, define `#define MEMTRACK_IMPLEMENTATION` in **one** C file before including `"memtrack.h"`.
 
-Secondly, in the main function, you need to call MemTrack_Init(); and use your desired configs
+`MemTrack_Init` and `MemTrack_Quit` are the only functions that must be called exclusively on the main thread:
 
-    MemTrack_Init(NULL, NULL, false, false);
+```c
+// Initializes MemTrack. Returns 1 on failure or if called more than once.
+// Note: If compiled with STDLIB_ALLOCATIONS, auto_null_pointers and memory_failure_abort have no effect.
+int MemTrack_Init(void (*malloc_fail_handler)(void*), void *handler_arg, bool auto_null_pointers, bool memory_failure_abort);
 
-If you are using the memory_failure_abort config, the malloc failure function you pass into the init function will run with the void* you pass into init if malloc fails
+// Cleans up internal tracking resources. Call after all other threads have terminated.
+void MemTrack_Quit(void);
 
-Importantly, if you're using the macro STDLIB_ALLOCATIONS, the auto_null_pointers and memory_failure_abort bools will do nothing
+// Returns current tracked heap usage in bytes.
+size_t check_memory_usage(void);
 
-# Using MemTrack
+// Returns 1 if unfreed tracked allocations exist, or 0 if no leaks are present.
+int check_memory_leak(void);
 
-Here are the main functions and macros this library provides, most of these functions support multi-threading 
+// Outputs detailed allocation and leak tracking info.
+void print_tracking_info(void);
 
-## Functions
+// Populates major and minor version numbers. Returns 1 on failure.
+int MemTrack_GetVersion(int *major, int *minor);
+```
 
+### Allocation Macros
 
-MemTrack_Init and MemTrack_Quit are the only functions that should only be called on the main thread
+These macro definitions change depending on which compiler macro you define, but they take these generic arguments. All of these macros support multi-threading:
 
-    int MemTrack_Init(void(*malloc_fail_handler)(void*), void *handler_arg, bool auto_null_pointers, bool memory_failure_abort);     
-    // returns 1 if failure or if called more than once
+```c
+void* t_malloc(size_t size);
+void* t_realloc(void *mem, size_t size);
+void  t_free(void *mem);
+char* t_strdup(const char *string);
+```
 
-    void MemTrack_Quit(); // call this after all other threads are cleaned up
-
-
-    size_t check_memory_usage(); // returns size_t of the amount of bytes used in heap
-    int check_memory_leak(); // returns 1 if there are tracked allocations, returns 0 if there aren't tracked allocations
-    void print_tracking_info(); // prints all tracking information
-    int MemTrack_GetVersion(int *major, int *minor); // gets the version of memtrack, returns 1 if failure
-
-
-## Macros
-
-These macro definitions change depending on what compiler macro you define, but these are the generic args you give them. All of these macros support multi-threading
-
-    void* t_malloc(size_t size);
-
-    void* t_realloc(void *mem, size_t size);
-    
-    void t_free(void *mem); 
-
-    char* t_strdup(const char *string);
-
-
-# Example Program
+## Example Program
 
 ```c
 #define MEMTRACK_IMPLEMENTATION
@@ -99,56 +80,42 @@ void malloc_failure(void *data){
     printf("\ndub\n");
 }
 
-
 void* thread_func(void *arg){
     return t_malloc(100);
 }
 
-
-
 int main(void){
-
     MemTrack_Init(malloc_failure, NULL, true, true);
 
     pthread_t thread;
-
     if(pthread_create(&thread, NULL, thread_func, NULL)){
         return 1;
-    } 
+    }
 
     int *array = t_malloc(999999);
-
     if(!array)
         printf("array is null\n");
-
 
     t_free(array);
 
     if(!array){
-
         printf("is null after free\n");
-
-    } else{
-
+    } else {
         printf("isn't null after free\n");
-
     }
-   
-    
 
     void *result = NULL;
     pthread_join(thread, &result);
 
     if(check_memory_leak())
         print_tracking_info();
-    
-    MemTrack_Quit();
 
+    MemTrack_Quit();
     return 0;
 }
 ```
 
-# Building and Testing with CMake
+## Building and Testing with CMake
 
 MemTrack provides modern CMake targets and CTest integration.
 
@@ -175,12 +142,15 @@ sudo cmake --install build
 sudo ldconfig  # update dynamic linker cache for libmemtrack.so
 ```
 
+
 Or install to user environment without root (`~/.local`):
 ```bash
 cmake -B build -S . -DCMAKE_INSTALL_PREFIX=$HOME/.local
 cmake --build build
 cmake --install build
 ```
+for other operating systems, just put the shared lib, header files, and cmake files where they need to go
+
 
 ### Integration in CMake Projects (Shared Library Users)
 Installing into your environment is designed for **shared library users**. Once installed, other CMake projects on Fedora automatically detect MemTrack:
