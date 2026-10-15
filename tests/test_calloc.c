@@ -94,15 +94,15 @@ static void test_debug_calloc_zeroed(void) {
 }
 
 static void test_debug_calloc_tracked_and_freed(void) {
-    TEST_ASSERT_EQ(check_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
 
     void *p = debug_calloc(10, 4, __FILE__, __LINE__);
     TEST_ASSERT_NOT_NULL(p);
-    TEST_ASSERT_EQ(check_memory_leak(), 1);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 1);
 
     debug_free(&p, __FILE__, __LINE__);
     TEST_ASSERT_NULL(p);
-    TEST_ASSERT_EQ(check_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
 }
 
 /* Total tracked size should be num * size. NOTE: debug_calloc currently
@@ -110,9 +110,9 @@ static void test_debug_calloc_tracked_and_freed(void) {
 static void test_debug_calloc_tracks_total_size(void) {
     void *p = debug_calloc(10, 4, __FILE__, __LINE__);
     TEST_ASSERT_NOT_NULL(p);
-    TEST_ASSERT_EQ(check_memory_usage(), (size_t)40);
+    TEST_ASSERT_EQ(MemTrack_memory_usage(), (size_t)40);
     debug_free(&p, __FILE__, __LINE__);
-    TEST_ASSERT_EQ(check_memory_usage(), (size_t)0);
+    TEST_ASSERT_EQ(MemTrack_memory_usage(), (size_t)0);
 }
 
 static void test_debug_calloc_multiple_allocations(void) {
@@ -122,15 +122,15 @@ static void test_debug_calloc_multiple_allocations(void) {
     TEST_ASSERT_NOT_NULL(a);
     TEST_ASSERT_NOT_NULL(b);
     TEST_ASSERT_NOT_NULL(c);
-    TEST_ASSERT_EQ(check_memory_usage(), (size_t)56);
+    TEST_ASSERT_EQ(MemTrack_memory_usage(), (size_t)56);
 
     /* free middle, head, then tail to exercise list unlinking */
     debug_free(&b, __FILE__, __LINE__);
-    TEST_ASSERT_EQ(check_memory_leak(), 1);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 1);
     debug_free(&a, __FILE__, __LINE__);
-    TEST_ASSERT_EQ(check_memory_leak(), 1);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 1);
     debug_free(&c, __FILE__, __LINE__);
-    TEST_ASSERT_EQ(check_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
 }
 
 static void test_debug_calloc_overflow_returns_null(void) {
@@ -138,7 +138,7 @@ static void test_debug_calloc_overflow_returns_null(void) {
     void *p = debug_calloc(SIZE_MAX, 2, __FILE__, __LINE__);
     TEST_ASSERT_NULL(p);
     TEST_ASSERT_EQ(g_fail_count, before + 1);
-    TEST_ASSERT_EQ(check_memory_leak(), 0); /* nothing tracked on failure */
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0); /* nothing tracked on failure */
 }
 
 static void test_debug_calloc_then_realloc(void) {
@@ -152,10 +152,10 @@ static void test_debug_calloc_then_realloc(void) {
 
     /* original calloc'd region must still be zero after growth */
     TEST_ASSERT_TRUE(all_zero(arr, 4 * sizeof(int)));
-    TEST_ASSERT_EQ(check_memory_leak(), 1);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 1);
 
     debug_free((void **)&arr, __FILE__, __LINE__);
-    TEST_ASSERT_EQ(check_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
 }
 
 static void test_debug_free_untracked_calloc_pointer(void) {
@@ -176,11 +176,11 @@ static void test_t_calloc_macro(void) {
     TEST_ASSERT_NOT_NULL(arr);
     if (arr) {
         TEST_ASSERT_TRUE(all_zero(arr, 12 * sizeof(int)));
-        TEST_ASSERT_EQ(check_memory_leak(), 1);
+        TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 1);
     }
     t_free(arr);
     TEST_ASSERT_NULL(arr);
-    TEST_ASSERT_EQ(check_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
 }
 
 static void test_t_calloc_struct(void) {

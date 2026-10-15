@@ -1,4 +1,4 @@
-# MemTrack v1.3
+# MemTrack v1.3.1
 
 A thread-safe, configurable C memory allocation tracker and leak detector. MemTrack can be used as an **stb-style single-header library** (`memtrack.h`) or built and linked as a **shared library** via CMake.
 
@@ -46,16 +46,16 @@ int MemTrack_Init(void (*malloc_fail_handler)(void*), void *handler_arg, bool au
 void MemTrack_Quit(void);
 
 // Returns current tracked heap usage in bytes.
-size_t check_memory_usage(void);
+size_t MemTrack_memory_usage(void);
 
 // Returns 1 if unfreed tracked allocations exist, or 0 if no leaks are present.
-int check_memory_leak(void);
+int MemTrack_is_memory_leak(void);
 
 // Outputs detailed allocation and leak tracking info.
-void print_tracking_info(void);
+void MemTrack_tracking_info(void);
 
-// Populates major and minor version numbers. Returns 1 on failure.
-int MemTrack_GetVersion(int *major, int *minor);
+// Populates major, minor, and micro version numbers. Returns 1 on failure.
+int MemTrack_GetVersion(int *major, int *minor, int *micro);
 ```
 
 ### Allocation Macros
@@ -107,8 +107,8 @@ int main(void){
     void *result = NULL;
     pthread_join(thread, &result);
 
-    if(check_memory_leak())
-        print_tracking_info();
+    if(MemTrack_is_memory_leak())
+        MemTrack_tracking_info();
 
     MemTrack_Quit();
     return 0;
