@@ -83,10 +83,10 @@ int main(void) {
         TEST_ASSERT_EQ(rc, 0);
     }
 
-    // While threads are executing, call check_memory_usage and check_memory_leak
+    // While threads are executing, call MemTrack_memory_usage and MemTrack_is_memory_leak
     for (int i = 0; i < 50; i++) {
-        (void)check_memory_usage();
-        (void)check_memory_leak();
+        (void)MemTrack_memory_usage();
+        (void)MemTrack_is_memory_leak();
     }
 
     for (int i = 0; i < NUM_THREADS; i++) {
@@ -95,8 +95,8 @@ int main(void) {
     }
 
     // All threads joined, all allocations should be freed
-    TEST_ASSERT_EQ(check_memory_usage(), 0);
-    TEST_ASSERT_EQ(check_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
 
     // Leave a small allocation so MemTrack_Quit tears down and resets info.init
     void *cleanup = t_malloc(16);

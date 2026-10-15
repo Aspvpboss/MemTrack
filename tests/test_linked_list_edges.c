@@ -11,11 +11,11 @@ int main(void) {
     {
         void *p = t_malloc(50);
         TEST_ASSERT_NOT_NULL(p);
-        TEST_ASSERT_EQ(check_memory_usage(), 50);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 50);
         t_free(p);
         TEST_ASSERT_NULL(p);
-        TEST_ASSERT_EQ(check_memory_usage(), 0);
-        TEST_ASSERT_EQ(check_memory_leak(), 0);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+        TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
     }
 
     // 2. Head node deletion with remaining nodes
@@ -23,16 +23,16 @@ int main(void) {
         void *a = t_malloc(10);
         void *b = t_malloc(20);
         void *c = t_malloc(30);
-        TEST_ASSERT_EQ(check_memory_usage(), 60);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 60);
 
         t_free(a); // delete head
         TEST_ASSERT_NULL(a);
-        TEST_ASSERT_EQ(check_memory_usage(), 50);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 50);
 
         t_free(b);
         t_free(c);
-        TEST_ASSERT_EQ(check_memory_usage(), 0);
-        TEST_ASSERT_EQ(check_memory_leak(), 0);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+        TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
     }
 
     // 3. Tail node deletion with remaining nodes
@@ -40,16 +40,16 @@ int main(void) {
         void *a = t_malloc(10);
         void *b = t_malloc(20);
         void *c = t_malloc(30);
-        TEST_ASSERT_EQ(check_memory_usage(), 60);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 60);
 
         t_free(c); // delete tail
         TEST_ASSERT_NULL(c);
-        TEST_ASSERT_EQ(check_memory_usage(), 30);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 30);
 
         t_free(a);
         t_free(b);
-        TEST_ASSERT_EQ(check_memory_usage(), 0);
-        TEST_ASSERT_EQ(check_memory_leak(), 0);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+        TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
     }
 
     // 4. Middle node deletion
@@ -57,16 +57,16 @@ int main(void) {
         void *a = t_malloc(10);
         void *b = t_malloc(20);
         void *c = t_malloc(30);
-        TEST_ASSERT_EQ(check_memory_usage(), 60);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 60);
 
         t_free(b); // delete middle
         TEST_ASSERT_NULL(b);
-        TEST_ASSERT_EQ(check_memory_usage(), 40);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 40);
 
         t_free(a);
         t_free(c);
-        TEST_ASSERT_EQ(check_memory_usage(), 0);
-        TEST_ASSERT_EQ(check_memory_leak(), 0);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+        TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
     }
 
     // 5. Reverse order free (LIFO)
@@ -81,8 +81,8 @@ int main(void) {
             t_free(ptrs[i]);
             TEST_ASSERT_NULL(ptrs[i]);
         }
-        TEST_ASSERT_EQ(check_memory_usage(), 0);
-        TEST_ASSERT_EQ(check_memory_leak(), 0);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+        TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
     }
 
     // 6. Forward order free (FIFO)
@@ -97,8 +97,8 @@ int main(void) {
             t_free(ptrs[i]);
             TEST_ASSERT_NULL(ptrs[i]);
         }
-        TEST_ASSERT_EQ(check_memory_usage(), 0);
-        TEST_ASSERT_EQ(check_memory_leak(), 0);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+        TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
     }
 
     // 7. Interleaved odd-even free
@@ -119,8 +119,8 @@ int main(void) {
             t_free(ptrs[i]);
             TEST_ASSERT_NULL(ptrs[i]);
         }
-        TEST_ASSERT_EQ(check_memory_usage(), 0);
-        TEST_ASSERT_EQ(check_memory_leak(), 0);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+        TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
     }
 
     // 8. Attempting to free untracked pointer
@@ -134,13 +134,13 @@ int main(void) {
         debug_free(&untracked, __FILE__, __LINE__);
 
         // The tracked allocation should still be intact
-        TEST_ASSERT_EQ(check_memory_usage(), 100);
-        TEST_ASSERT_EQ(check_memory_leak(), 1);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 100);
+        TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 1);
 
         t_free(tracked);
         TEST_ASSERT_NULL(tracked);
-        TEST_ASSERT_EQ(check_memory_usage(), 0);
-        TEST_ASSERT_EQ(check_memory_leak(), 0);
+        TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+        TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
     }
 
     TEST_REPORT();

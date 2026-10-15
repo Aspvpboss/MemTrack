@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(MemTrack
-    VERSION 1.3.0
+    VERSION 1.3.1
     DESCRIPTION "Lightweight C/C++ memory allocation tracking and leak detection library"
     LANGUAGES C
 )
@@ -53,8 +53,10 @@ add_library(memtrack_header INTERFACE)
 add_library(MemTrack::memtrack_header ALIAS memtrack_header)
 
 target_include_directories(memtrack_header INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/MemTrack>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/MemTrack>
 )
 target_link_libraries(memtrack_header INTERFACE Threads::Threads)
 
@@ -66,8 +68,10 @@ if(MEMTRACK_BUILD_SHARED)
     add_library(MemTrack::memtrack_lib ALIAS memtrack)
 
     target_include_directories(memtrack PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/MemTrack>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/MemTrack>
     )
     target_link_libraries(memtrack PUBLIC Threads::Threads)
     target_compile_definitions(memtrack

@@ -92,14 +92,14 @@ typedef struct Mem_Info{
 
 
 
-MEMTRACK_API size_t check_memory_usage();
-MEMTRACK_API void print_tracking_info();
-MEMTRACK_API int check_memory_leak();
+MEMTRACK_API size_t MemTrack_memory_usage();
+MEMTRACK_API void MemTrack_tracking_info();
+MEMTRACK_API int MemTrack_is_memory_leak();
 
 // init and quit should only be called on main thread
 MEMTRACK_API void MemTrack_Quit();
 MEMTRACK_API int MemTrack_Init(void(*malloc_fail_handler)(void*), void *handler_arg, bool auto_null_pointers, bool memory_failure_abort);
-MEMTRACK_API int MemTrack_GetVersion(int *major, int *minor);
+MEMTRACK_API int MemTrack_GetVersion(int *major, int *minor, int *micro);
 
 MEMTRACK_API void safe_free(void **mem);
 MEMTRACK_API void* safe_malloc(size_t size);
@@ -198,13 +198,14 @@ typedef struct{
 static Track_Info info = {0};
 
 
-int MemTrack_GetVersion(int *major, int *minor){
+int MemTrack_GetVersion(int *major, int *minor, int *micro){
 
-    if(!major || !minor)
+    if(!major || !minor || !micro)
         return 1;
 
     *major = 1;
     *minor = 3;
+    *micro = 1;
 
     return 0;
 }
@@ -242,6 +243,7 @@ void MemTrack_Quit(){
 
     Mem_Info *current = info.head;
     Mem_Info *next = NULL;
+    TRACK_MUTEX_DESTROY(info.mutex);
 
     if(!current) return;
 
@@ -252,8 +254,6 @@ void MemTrack_Quit(){
         current = next;
     }
 
-    TRACK_MUTEX_DESTROY(info.mutex);
-
     info.head = NULL;
     info.tail = NULL;
     info.init = false;
@@ -261,7 +261,7 @@ void MemTrack_Quit(){
 
 
 
-size_t check_memory_usage(){
+size_t MemTrack_memory_usage(){
 
     TRACK_MUTEX_LOCK(info.mutex);
 
@@ -279,7 +279,7 @@ size_t check_memory_usage(){
 }
 
 
-int check_memory_leak(){
+int MemTrack_is_memory_leak(){
 
     TRACK_MUTEX_LOCK(info.mutex);
     
@@ -295,7 +295,7 @@ int check_memory_leak(){
 
 
 
-void print_tracking_info(){
+void MemTrack_tracking_info(){
 
     TRACK_MUTEX_LOCK(info.mutex);
     
@@ -318,7 +318,7 @@ void print_tracking_info(){
 }
 
 
-int append_allocation(void *ptr, const char *file, int line, size_t size){
+static int append_allocation(void *ptr, const char *file, int line, size_t size){
 
     TRACK_MUTEX_LOCK(info.mutex);
 
@@ -361,7 +361,7 @@ int append_allocation(void *ptr, const char *file, int line, size_t size){
 }
 
 
-int delete_allocation(void *check_ptr){
+static int delete_allocation(void *check_ptr){
     
     TRACK_MUTEX_LOCK(info.mutex);
     

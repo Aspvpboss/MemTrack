@@ -8,16 +8,16 @@ int main(void) {
     int res = MemTrack_Init(NULL, NULL, true, false);
     TEST_ASSERT_EQ(res, 0);
 
-    // In safe mode, check_memory_usage stays 0 because no tracking nodes are created
-    TEST_ASSERT_EQ(check_memory_usage(), 0);
-    TEST_ASSERT_EQ(check_memory_leak(), 0);
+    // In safe mode, MemTrack_memory_usage stays 0 because no tracking nodes are created
+    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
 
     // Test t_malloc in safe mode
     char *buf = (char *)t_malloc(128);
     TEST_ASSERT_NOT_NULL(buf);
     strcpy(buf, "Safe mode buffer");
     TEST_ASSERT_STR_EQ(buf, "Safe mode buffer");
-    TEST_ASSERT_EQ(check_memory_usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
 
     // Test t_realloc in safe mode
     buf = (char *)t_realloc(buf, 256);
@@ -36,8 +36,8 @@ int main(void) {
     t_free(dup);
     TEST_ASSERT_NULL(dup);
 
-    TEST_ASSERT_EQ(check_memory_usage(), 0);
-    TEST_ASSERT_EQ(check_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
 
     // Test safe_malloc and safe_free directly
     void *direct = safe_malloc(64);
