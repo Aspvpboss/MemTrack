@@ -59,7 +59,7 @@ extern "C"{
 // changes these macros to use what functions you want, be careful
 
 #ifndef NDEBUG
-    #define TRACK_PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+    #define TRACK_PRINTF(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
 #else 
     #define TRACK_PRINTF(fmt, ...)
 #endif
@@ -67,6 +67,7 @@ extern "C"{
 
 #define TRACK_MALLOC(size) malloc(size)
 #define TRACK_REALLOC(mem, newsize) realloc(mem, newsize)
+#define TRACK_CALLOC(num, size) calloc(num, size)
 #define TRACK_FREE(ptr) free(ptr)
 #define TRACK_STRLEN(str) strlen(str)
 #define TRACK_STRLCPY(dst, src, size) memcpy(dst, src, size)
@@ -102,11 +103,13 @@ MEMTRACK_API int MemTrack_GetVersion(int *major, int *minor);
 
 MEMTRACK_API void safe_free(void **mem);
 MEMTRACK_API void* safe_malloc(size_t size);
+MEMTRACK_API void* safe_calloc(size_t num, size_t size);
 MEMTRACK_API void* safe_realloc(void *memory, size_t size);
 MEMTRACK_API char* safe_strdup(const char *src);
 
 MEMTRACK_API void debug_free(void **mem, const char *file, int line);
 MEMTRACK_API void* debug_malloc(size_t size, const char *file, int line);
+MEMTRACK_API void* debug_calloc(size_t num, size_t size, const char *file, int line);
 MEMTRACK_API void* debug_realloc(void *mem, size_t size, const char *file, int line);
 MEMTRACK_API char* debug_strdup(const char* src, const char *file, int line);
 
@@ -116,6 +119,9 @@ MEMTRACK_API char* debug_strdup(const char* src, const char *file, int line);
 
     //void *t_malloc(size_t size);
     #define t_malloc(size) debug_malloc(size, __FILE__, __LINE__)
+
+    //void *t_calloc(size_t num, size_t size);
+    #define t_calloc(num, size) debug_calloc(num, size, __FILE__, __LINE__)
 
     //void *t_realloc(void *ptr, size_t size);
     #define t_realloc(ptr, size) debug_realloc(ptr, size, __FILE__, __LINE__)
@@ -132,6 +138,9 @@ MEMTRACK_API char* debug_strdup(const char* src, const char *file, int line);
  
     //void *t_malloc(size_t size);
     #define t_malloc(size) malloc(size)
+    
+    //void *t_calloc(size_t num, size_t size);
+    #define t_calloc(num, size) calloc(num, size)
 
     //void *t_realloc(void *ptr, size_t size);
     #define t_realloc(ptr, size) realloc(ptr, size)
@@ -151,6 +160,9 @@ MEMTRACK_API char* debug_strdup(const char* src, const char *file, int line);
 
     //void *t_realloc(void *mem, size_t size);
     #define t_realloc(ptr, size) safe_realloc(ptr, size)
+
+    //void *t_calloc(size_t num, size_t size);
+    #define t_calloc(num, size) safe_calloc(num, size)
 
     /*
     void t_free(void **mem);
@@ -192,7 +204,7 @@ int MemTrack_GetVersion(int *major, int *minor){
         return 1;
 
     *major = 1;
-    *minor = 2;
+    *minor = 3;
 
     return 0;
 }
@@ -455,6 +467,11 @@ void* safe_malloc(size_t size){
     return new_mem;
 }
 
+void* safe_calloc(size_t num, size_t size){
+    void *new_mem = TRACK_CALLOC(num, size);
+    check_malloc_error(new_mem);
+    return new_mem;
+}
 
 void safe_free(void **mem){
 
@@ -497,6 +514,26 @@ void* debug_malloc(size_t size, const char *file, int line){
     
 
     if(append_allocation(mem, file, line, size)){
+        TRACK_FREE(mem);
+
+        TRACK_PRINTF("MemTrack ERROR: failed to malloc tracking info for file %s, line - %d\n", file, line);
+
+        return NULL;    
+    }
+
+    return mem;
+}
+
+
+void* debug_calloc(size_t num, size_t size, const char *file, int line) {
+
+    void *mem = TRACK_CALLOC(num, size);    
+    debug_check_malloc_error(mem, file, line);
+    if(!mem)
+        return NULL;
+    
+
+    if(append_allocation(mem, file, line, size * num)){
         TRACK_FREE(mem);
 
         TRACK_PRINTF("MemTrack ERROR: failed to malloc tracking info for file %s, line - %d\n", file, line);
