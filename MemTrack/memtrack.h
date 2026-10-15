@@ -416,7 +416,7 @@ static int delete_allocation(void *check_ptr){
 
 
 
-static void check_malloc_error(void *mem){
+void check_malloc_error(void *mem){
 
     if(mem || !info.init)
         return;
@@ -432,7 +432,7 @@ static void check_malloc_error(void *mem){
     return; 
 }
 
-static void debug_check_malloc_error(void *mem, const char *file, int line){
+void debug_check_malloc_error(void *mem, const char *file, int line){
 
     if(mem || !info.init)
         return;
