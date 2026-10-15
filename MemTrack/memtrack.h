@@ -243,6 +243,7 @@ void MemTrack_Quit(){
 
     Mem_Info *current = info.head;
     Mem_Info *next = NULL;
+    TRACK_MUTEX_DESTROY(info.mutex);
 
     if(!current) return;
 
@@ -252,8 +253,6 @@ void MemTrack_Quit(){
         TRACK_FREE(current);
         current = next;
     }
-
-    TRACK_MUTEX_DESTROY(info.mutex);
 
     info.head = NULL;
     info.tail = NULL;
@@ -319,7 +318,7 @@ void MemTrack_tracking_info(){
 }
 
 
-int append_allocation(void *ptr, const char *file, int line, size_t size){
+static int append_allocation(void *ptr, const char *file, int line, size_t size){
 
     TRACK_MUTEX_LOCK(info.mutex);
 
@@ -362,7 +361,7 @@ int append_allocation(void *ptr, const char *file, int line, size_t size){
 }
 
 
-int delete_allocation(void *check_ptr){
+static int delete_allocation(void *check_ptr){
     
     TRACK_MUTEX_LOCK(info.mutex);
     
@@ -417,7 +416,7 @@ int delete_allocation(void *check_ptr){
 
 
 
-void check_malloc_error(void *mem){
+static void check_malloc_error(void *mem){
 
     if(mem || !info.init)
         return;
@@ -433,7 +432,7 @@ void check_malloc_error(void *mem){
     return; 
 }
 
-void debug_check_malloc_error(void *mem, const char *file, int line){
+static void debug_check_malloc_error(void *mem, const char *file, int line){
 
     if(mem || !info.init)
         return;
