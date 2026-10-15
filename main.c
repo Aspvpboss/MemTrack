@@ -41,7 +41,6 @@ int main(void){
 
     }
    
-    
 
     void *result = NULL;
     pthread_join(thread, &result);

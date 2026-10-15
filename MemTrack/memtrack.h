@@ -103,11 +103,13 @@ MEMTRACK_API int MemTrack_GetVersion(int *major, int *minor);
 
 MEMTRACK_API void safe_free(void **mem);
 MEMTRACK_API void* safe_malloc(size_t size);
+MEMTRACK_API void* safe_calloc(size_t num, size_t size);
 MEMTRACK_API void* safe_realloc(void *memory, size_t size);
 MEMTRACK_API char* safe_strdup(const char *src);
 
 MEMTRACK_API void debug_free(void **mem, const char *file, int line);
 MEMTRACK_API void* debug_malloc(size_t size, const char *file, int line);
+MEMTRACK_API void* debug_calloc(size_t num, size_t size, const char *file, int line);
 MEMTRACK_API void* debug_realloc(void *mem, size_t size, const char *file, int line);
 MEMTRACK_API char* debug_strdup(const char* src, const char *file, int line);
 
@@ -531,7 +533,7 @@ void* debug_calloc(size_t num, size_t size, const char *file, int line) {
         return NULL;
     
 
-    if(append_allocation(mem, file, line, size)){
+    if(append_allocation(mem, file, line, size * num)){
         TRACK_FREE(mem);
 
         TRACK_PRINTF("MemTrack ERROR: failed to malloc tracking info for file %s, line - %d\n", file, line);
