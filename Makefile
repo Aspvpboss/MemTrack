@@ -1,3 +1,5 @@
+# DEPRECIATED
+
 
 GCC = gcc
 

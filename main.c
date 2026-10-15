@@ -1,5 +1,5 @@
 #define MEMTRACK_IMPLEMENTATION
-#include "memtrack.h"
+#include "MemTrack/memtrack.h"
 #include <pthread.h>
 
 void malloc_failure(void *data){
@@ -41,7 +41,6 @@ int main(void){
 
     }
    
-    
 
     void *result = NULL;
     pthread_join(thread, &result);
