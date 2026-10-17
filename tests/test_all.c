@@ -50,7 +50,7 @@ static void test_calloc_and_realloc(void) {
     TEST_ASSERT_NULL(cal);
     TEST_ASSERT_EQ(MemTrack_Memory_Usage(), (size_t)0);
 
-    char *buf = (char *)t_realloc(NULL, 32);
+    char *buf = (char *)t_malloc(32);
     TEST_ASSERT_NOT_NULL(buf);
     TEST_ASSERT_EQ(MemTrack_Memory_Usage(), (size_t)32);
 

@@ -484,6 +484,7 @@ char* MemTrack_strndup(const char *src, size_t size){
 
 
 char* MemTrack_Safe_strndup(const char *src, size_t size){
+    if(!src) return NULL;
     char *new_mem = TRACK_STRNDUP(src, size);
     check_malloc_error(new_mem);
     return new_mem;
@@ -507,12 +508,14 @@ char* MemTrack_Debug_strndup(const char *src, size_t size, const char *file, int
 
 
 char* MemTrack_Safe_strdup(const char *src){
+    if(!src) return NULL;
     char *new_mem = TRACK_STRDUP(src);
     check_malloc_error(new_mem);
     return new_mem;
 }
 
 void* MemTrack_Safe_realloc(void *memory, size_t size){
+    if(!memory) return NULL;
     void *new_mem = TRACK_REALLOC(memory, size);
     check_malloc_error(new_mem);
     return new_mem;
@@ -604,10 +607,7 @@ void* MemTrack_Debug_calloc(size_t num, size_t size, const char *file, int line)
 
 void* MemTrack_Debug_realloc(void *mem, size_t size, const char *file, int line){
 
-    if(!mem){
-        void *new_mem = MemTrack_Debug_malloc(size, file, line);
-        return new_mem;
-    }
+    if(!mem) return NULL;
         
 
     if(delete_allocation(mem)){

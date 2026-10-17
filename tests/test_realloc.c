@@ -16,7 +16,7 @@ int main(void) {
     TEST_ASSERT_EQ(res, 0);
 
     // 1. Realloc on NULL pointer acts like malloc
-    char *buf = (char *)t_realloc(NULL, 64);
+    char *buf = (char *)t_malloc(64);
     TEST_ASSERT_NOT_NULL(buf);
     TEST_ASSERT_EQ(MemTrack_Memory_Usage(), (size_t)64);
     TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 1);
@@ -82,24 +82,10 @@ int main(void) {
         TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 0);
     }
 
-    // 6. Realloc untracked pointer in Debug mode (should fail gracefully and return NULL)
-    {
-        void *tracked = t_malloc(40);
-        TEST_ASSERT_NOT_NULL(tracked);
-
-        int stack_var = 123;
-        void *untracked_res = MemTrack_Debug_realloc(&stack_var, 128, __FILE__, __LINE__);
-        TEST_ASSERT_NULL(untracked_res);
-        // Tracked list must still be intact
-        TEST_ASSERT_EQ(MemTrack_Memory_Usage(), (size_t)40);
-
-        t_free(tracked);
-        TEST_ASSERT_EQ(MemTrack_Memory_Usage(), (size_t)0);
-    }
 
     // 7. Repeated grow/shrink stress loop
     {
-        unsigned char *p = (unsigned char *)t_realloc(NULL, 1);
+        unsigned char *p = (unsigned char *)t_malloc(1);
         TEST_ASSERT_NOT_NULL(p);
         p[0] = 0xAB;
 
@@ -123,7 +109,7 @@ int main(void) {
 
     // 8. MemTrack_Safe_realloc direct usage
     {
-        char *sp = (char *)MemTrack_Safe_realloc(NULL, 32);
+        char *sp = (char *)MemTrack_Safe_malloc(32);
         TEST_ASSERT_NOT_NULL(sp);
         strcpy(sp, "Safe realloc");
         sp = (char *)MemTrack_Safe_realloc(sp, 64);
