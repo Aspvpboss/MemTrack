@@ -469,7 +469,7 @@ static void debug_check_malloc_error(void *mem, const char *file, int line){
 char* MemTrack_strndup(const char *src, size_t size){
     if(!src) return NULL;
   
-    const char *end = memchr(src, '\0', size);
+    const char *end = (const char *)memchr(src, '\0', size);
     size_t len = end ? (size_t)(end - src) : size;
 
     char *new_str = (char *)TRACK_MALLOC(sizeof(char) * (len + 1));
@@ -492,7 +492,7 @@ char* MemTrack_Safe_strndup(const char *src, size_t size){
 char* MemTrack_Debug_strndup(const char *src, size_t size, const char *file, int line){
     if(!src) return NULL;
   
-    const char *end = memchr(src, '\0', size);
+    const char *end = (const char *)memchr(src, '\0', size);
     size_t len = end ? (size_t)(end - src) : size;
     
     char *new_str = (char *)MemTrack_Debug_malloc(sizeof(char) * (len + 1), file, line);
