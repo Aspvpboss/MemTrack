@@ -65,31 +65,18 @@ extern "C"{
 #endif
 
 
-#define TRACK_MALLOC(size) malloc(size)
-#define TRACK_REALLOC(mem, newsize) realloc(mem, newsize)
-#define TRACK_CALLOC(num, size) calloc(num, size)
-#define TRACK_FREE(ptr) free(ptr)
-#define TRACK_STRLEN(str) strlen(str)
-#define TRACK_STRLCPY(dst, src, size) memcpy(dst, src, size)
-#define TRACK_STRDUP(str) strdup(str)
-#define TRACK_EXIT exit(EXIT_FAILURE)
-
-#define TRACK_MUTEX_TYPE pthread_mutex_t 
-#define TRACK_MUTEX_CREATE(mutex) pthread_mutex_init(&mutex, NULL) // you may have to change this if your mutex create function doesn't take the mutex as an arg
-#define TRACK_MUTEX_DESTROY(mutex) pthread_mutex_destroy(&mutex)
-#define TRACK_MUTEX_LOCK(mutex) pthread_mutex_lock(&mutex)
-#define TRACK_MUTEX_UNLOCK(mutex) pthread_mutex_unlock(&mutex)
-
-
-
 MEMTRACK_API size_t MemTrack_Memory_Usage();
 MEMTRACK_API void MemTrack_Tracking_Info();
 MEMTRACK_API int MemTrack_Is_Memory_Leak();
+MEMTRACK_API int MemTrack_Get_Version(int *major, int *minor, int *micro);
 
 // init and quit should only be called on main thread
 MEMTRACK_API void MemTrack_Quit();
 MEMTRACK_API int MemTrack_Init(void(*malloc_err_handler)(void*), void *handler_arg, bool auto_null_pointers, bool abort_if_mem_error);
-MEMTRACK_API int MemTrack_Get_Version(int *major, int *minor, int *micro);
+
+// outlier, I wrote my own strndup for platform consistency
+MEMTRACK_API char* MemTrack_strndup(const char *src, size_t size);
+
 
 /*
     "safe" meaning it will do these things during runtime if configured
@@ -115,6 +102,22 @@ MEMTRACK_API void* MemTrack_Debug_calloc(size_t num, size_t size, const char *fi
 MEMTRACK_API void* MemTrack_Debug_realloc(void *mem, size_t size, const char *file, int line);
 MEMTRACK_API char* MemTrack_Debug_strdup(const char* src, const char *file, int line);
 
+
+#define TRACK_MALLOC(size) malloc(size)
+#define TRACK_REALLOC(mem, newsize) realloc(mem, newsize)
+#define TRACK_CALLOC(num, size) calloc(num, size)
+#define TRACK_FREE(ptr) free(ptr)
+#define TRACK_STRLEN(str) strlen(str)
+#define TRACK_STRDUP(str) strdup(str)
+#define TRACK_STRNDUP(str, size) MemTrack_strndup(str, size)
+#define TRACK_MEMCPY(dst, src, len) memcpy(dst, src, len)
+#define TRACK_EXIT exit(EXIT_FAILURE)
+
+#define TRACK_MUTEX_TYPE pthread_mutex_t 
+#define TRACK_MUTEX_CREATE(mutex) pthread_mutex_init(&mutex, NULL) // you may have to change this if your mutex create function doesn't take the mutex as an arg
+#define TRACK_MUTEX_DESTROY(mutex) pthread_mutex_destroy(&mutex)
+#define TRACK_MUTEX_LOCK(mutex) pthread_mutex_lock(&mutex)
+#define TRACK_MUTEX_UNLOCK(mutex) pthread_mutex_unlock(&mutex)
 
 
 #ifdef TRACK_ALLOCATIONS
@@ -428,7 +431,7 @@ static int delete_allocation(void *check_ptr){
 
 
 
-void check_malloc_error(void *mem){
+static void check_malloc_error(void *mem){
 
     if(mem || !info.init)
         return;
@@ -444,7 +447,7 @@ void check_malloc_error(void *mem){
     return; 
 }
 
-void debug_check_malloc_error(void *mem, const char *file, int line){
+static void debug_check_malloc_error(void *mem, const char *file, int line){
 
     if(mem || !info.init)
         return;
@@ -458,6 +461,45 @@ void debug_check_malloc_error(void *mem, const char *file, int line){
         TRACK_EXIT;
     
     return; 
+}
+
+
+char* MemTrack_strndup(const char *src, size_t size){
+    if(!src) return NULL;
+  
+    const char *end = memchr(src, '\0', size);
+    size_t len = end ? (size_t)(end - src) : size;
+
+    char *new_str = (char *)TRACK_MALLOC(sizeof(char) * (len + 1));
+    if(!new_str) return NULL;
+    
+    TRACK_MEMCPY(new_str, src, len);
+    new_str[len] = '\0';
+
+    return new_str;
+}
+
+
+char* MemTrack_Safe_strndup(const char *src, size_t size){
+    char *new_mem = TRACK_STRNDUP(src, size);
+    check_malloc_error(new_mem);
+    return new_mem;
+}
+
+
+char* MemTrack_Debug_strndup(const char *src, size_t size, const char *file, int line){
+    if(!src) return NULL;
+  
+    const char *end = memchr(src, '\0', size);
+    size_t len = end ? (size_t)(end - src) : size;
+    
+    char *new_str = (char *)MemTrack_Debug_malloc(sizeof(char) * (len + 1), file, line);
+    if(!new_str) return NULL;
+    
+    TRACK_MEMCPY(new_str, src, len);
+    new_str[len] = '\0';
+
+    return new_str;
 }
 
 
@@ -602,7 +644,7 @@ char* MemTrack_Debug_strdup(const char* src, const char *file, int line){
     if(!dup)
         return NULL;
 
-    TRACK_STRLCPY(dup, src, src_len + 1);
+    TRACK_MEMCPY(dup, src, src_len);
     dup[src_len] = '\0';
 
     return dup;

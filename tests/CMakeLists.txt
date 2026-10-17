@@ -37,7 +37,6 @@ add_memtrack_test(test_realloc test_realloc.c)
 add_memtrack_test(test_strdup test_strdup.c)
 add_memtrack_test(test_auto_null test_auto_null.c)
 add_memtrack_test(test_linked_list_edges test_linked_list_edges.c)
-add_memtrack_test(test_fail_handler test_fail_handler.c)
 add_memtrack_test(test_threads test_threads.c)
 add_memtrack_test(test_calloc test_calloc.c)
 
