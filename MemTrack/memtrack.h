@@ -607,10 +607,7 @@ void* MemTrack_Debug_calloc(size_t num, size_t size, const char *file, int line)
 
 void* MemTrack_Debug_realloc(void *mem, size_t size, const char *file, int line){
 
-    if(!mem){
-        void *new_mem = MemTrack_Debug_malloc(size, file, line);
-        return new_mem;
-    }
+    if(!mem) return NULL;
         
 
     if(delete_allocation(mem)){

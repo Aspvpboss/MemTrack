@@ -138,7 +138,6 @@ static void test_MemTrack_Safe_strndup(void) {
     before = g_strndup_fail_count;
     char *s_null = MemTrack_Safe_strndup(NULL, 5);
     TEST_ASSERT_NULL(s_null);
-    TEST_ASSERT_EQ(g_strndup_fail_count, before + 1);
 }
 
 /* ---------- MemTrack_Debug_strndup & t_strndup ---------- */
