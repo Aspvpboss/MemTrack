@@ -98,15 +98,27 @@ MEMTRACK_API int MemTrack_is_memory_leak();
 
 // init and quit should only be called on main thread
 MEMTRACK_API void MemTrack_Quit();
-MEMTRACK_API int MemTrack_Init(void(*malloc_fail_handler)(void*), void *handler_arg, bool auto_null_pointers, bool memory_failure_abort);
+MEMTRACK_API int MemTrack_Init(void(*malloc_err_handler)(void*), void *handler_arg, bool auto_null_pointers, bool abort_if_mem_error);
 MEMTRACK_API int MemTrack_GetVersion(int *major, int *minor, int *micro);
 
+/*
+    "safe" meaning it will do these things during runtime if configured
+    - auto NULL pointers freed
+    - exit the program if malloc fails
+    - run malloc error handler
+*/
 MEMTRACK_API void MemTrack_safe_free(void **mem);
 MEMTRACK_API void* MemTrack_safe_malloc(size_t size);
 MEMTRACK_API void* MemTrack_safe_calloc(size_t num, size_t size);
 MEMTRACK_API void* MemTrack_safe_realloc(void *memory, size_t size);
 MEMTRACK_API char* MemTrack_safe_strdup(const char *src);
 
+/*
+    "debug" meaning it will track allocations and do these things during runtime if configured
+    - auto NULL pointers freed
+    - exit the program if malloc fails
+    - run malloc error handler
+*/
 MEMTRACK_API void MemTrack_debug_free(void **mem, const char *file, int line);
 MEMTRACK_API void* MemTrack_debug_malloc(size_t size, const char *file, int line);
 MEMTRACK_API void* MemTrack_debug_calloc(size_t num, size_t size, const char *file, int line);
@@ -188,7 +200,7 @@ typedef struct{
     MemTrack_Mem_Info *tail;
     void (*fail_handler)(void*);
     void *handler_arg;
-    bool memory_failure_abort;
+    bool abort_if_mem_error;
     bool auto_null_pointers;
     bool init;
     TRACK_MUTEX_TYPE mutex;
@@ -211,7 +223,7 @@ int MemTrack_GetVersion(int *major, int *minor, int *micro){
 }
 
 
-int MemTrack_Init(void(*malloc_fail_handler)(void*), void *handler_arg, bool auto_null_pointers, bool memory_failure_abort){
+int MemTrack_Init(void(*malloc_err_handler)(void*), void *handler_arg, bool auto_null_pointers, bool abort_if_mem_error){
 
     if(info.init){
         TRACK_PRINTF("Memtrack already initialized\n");
@@ -227,10 +239,10 @@ int MemTrack_Init(void(*malloc_fail_handler)(void*), void *handler_arg, bool aut
     info.tail = NULL;
 
     info.auto_null_pointers = auto_null_pointers;
-    info.memory_failure_abort = memory_failure_abort;
+    info.abort_if_mem_error = abort_if_mem_error;
     info.init = true;
 
-    info.fail_handler = malloc_fail_handler;
+    info.fail_handler = malloc_err_handler;
     info.handler_arg = handler_arg;
 
     return 0;
@@ -426,7 +438,7 @@ void check_malloc_error(void *mem){
 
     TRACK_PRINTF("MemTrack ERROR: malloc failed\n");
 
-    if(info.memory_failure_abort)
+    if(info.abort_if_mem_error)
         TRACK_EXIT;
     
     return; 
@@ -442,7 +454,7 @@ void debug_check_malloc_error(void *mem, const char *file, int line){
 
     TRACK_PRINTF("MemTrack ERROR: malloc failed for file %s, line - %d\n", file, line);
     
-    if(info.memory_failure_abort)
+    if(info.abort_if_mem_error)
         TRACK_EXIT;
     
     return; 

@@ -42,8 +42,8 @@ If using `memtrack.h` as a single-header library, define `#define MEMTRACK_IMPLE
 
 ```c
 // Initializes MemTrack. Returns 1 on failure or if called more than once.
-// Note: If compiled with STDLIB_ALLOCATIONS, auto_null_pointers and memory_failure_abort have no effect.
-int MemTrack_Init(void (*malloc_fail_handler)(void*), void *handler_arg, bool auto_null_pointers, bool memory_failure_abort);
+// Note: If compiled with STDLIB_ALLOCATIONS, auto_null_pointers and abort_if_mem_error have no effect.
+int MemTrack_Init(void (*malloc_err_handler)(void*), void *handler_arg, bool auto_null_pointers, bool abort_if_mem_error);
 
 // Cleans up internal tracking resources. Call after all other threads have terminated.
 void MemTrack_Quit(void);
