@@ -244,6 +244,7 @@ void MemTrack_Quit(){
     Mem_Info *current = info.head;
     Mem_Info *next = NULL;
     TRACK_MUTEX_DESTROY(info.mutex);
+    info.init = false;
 
     if(!current) return;
 
@@ -256,7 +257,6 @@ void MemTrack_Quit(){
 
     info.head = NULL;
     info.tail = NULL;
-    info.init = false;
 }
 
 
