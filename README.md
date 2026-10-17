@@ -3,7 +3,9 @@
 A thread-safe, configurable C memory allocation tracker and leak detector. MemTrack can be used as an **stb-style single-header library** (`memtrack.h`) or built and linked as a **shared library** via CMake.
 
 ## Changes
-
+* changed private and public API function and variables names to be more clear and consistent
+* added strndup
+* fixed issue with MemTrack_Quit() not reseting the internal init var 
 
 ## Documentation
 
@@ -19,19 +21,20 @@ Pass one of these flags to your compiler (e.g., `-DTRACK_ALLOCATIONS`) to config
 These are the macros you can configure to change what underlying functions MemTrack uses *(only works if you recompile the shared library or use the single-header library)*:
 
 ```c
-#define TRACK_PRINTF(fmt, ...)     fprintf(stderr, fmt, ##__VA_ARGS__)
-#define TRACK_MALLOC(size)         malloc(size)
+#define TRACK_MALLOC(size) malloc(size)
 #define TRACK_REALLOC(mem, newsize) realloc(mem, newsize)
-#define TRACK_FREE(ptr)            free(ptr)
-#define TRACK_STRLEN(str)          strlen(str)
-#define TRACK_STRCPY(dst, src)     strcpy(dst, src)
-#define TRACK_STRDUP(str)          strdup(str)
-#define TRACK_EXIT                 exit(EXIT_FAILURE)
-#define TRACK_MUTEX_TYPE           pthread_mutex_t
-#define TRACK_MUTEX_CREATE(mutex)  pthread_mutex_init(&mutex, NULL)
+#define TRACK_CALLOC(num, size) calloc(num, size)
+#define TRACK_FREE(ptr) free(ptr)
+#define TRACK_STRLEN(str) strlen(str)
+#define TRACK_STRDUP(str) strdup(str)
+#define TRACK_STRNDUP(str, size) MemTrack_strndup(str, size)
+#define TRACK_MEMCPY(dst, src, len) memcpy(dst, src, len)
+#define TRACK_EXIT exit(EXIT_FAILURE)
+#define TRACK_MUTEX_TYPE pthread_mutex_t 
+#define TRACK_MUTEX_CREATE(mutex) pthread_mutex_init(&mutex, NULL)
 #define TRACK_MUTEX_DESTROY(mutex) pthread_mutex_destroy(&mutex)
-#define TRACK_MUTEX_LOCK(mutex)    pthread_mutex_lock(mutex)
-#define TRACK_MUTEX_UNLOCK(mutex)  pthread_mutex_unlock(mutex)
+#define TRACK_MUTEX_LOCK(mutex) pthread_mutex_lock(&mutex)
+#define TRACK_MUTEX_UNLOCK(mutex) pthread_mutex_unlock(&mutex)
 ```
 
 ### Using MemTrack
@@ -68,8 +71,10 @@ These macro definitions change depending on which compiler macro you define, but
 ```c
 void* t_malloc(size_t size);
 void* t_realloc(void *mem, size_t size);
+void* t_calloc(size_t num, size_t size);
 void  t_free(void *mem);
 char* t_strdup(const char *string);
+char* t_strndup(const char *str, size_t size);
 ```
 
 ## Example Program
