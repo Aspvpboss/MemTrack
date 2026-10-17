@@ -16,7 +16,7 @@ int main(void) {
     TEST_ASSERT_EQ(minor, 4);
     TEST_ASSERT_EQ(micro, 0);
 
-    // Verify allocations and tracking
+    // Verify allocations and tracking (malloc, calloc, realloc, strdup, strndup)
     int *nums = (int *)t_malloc(10 * sizeof(int));
     TEST_ASSERT_NOT_NULL(nums);
     TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 10 * sizeof(int));
@@ -26,10 +26,27 @@ int main(void) {
         nums[i] = i * i;
     }
 
+    int *zeroed = (int *)t_calloc(5, sizeof(int));
+    TEST_ASSERT_NOT_NULL(zeroed);
+    for (int i = 0; i < 5; i++) {
+        TEST_ASSERT_EQ(zeroed[i], 0);
+    }
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 15 * sizeof(int));
+
+    char *s = t_strndup("Header-only strndup test", 11);
+    TEST_ASSERT_NOT_NULL(s);
+    TEST_ASSERT_STR_EQ(s, "Header-only");
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 15 * sizeof(int) + 12);
+
     t_free(nums);
+    t_free(zeroed);
+    t_free(s);
     TEST_ASSERT_NULL(nums);
-    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 0);
+    TEST_ASSERT_NULL(zeroed);
+    TEST_ASSERT_NULL(s);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), (size_t)0);
     TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 0);
 
+    MemTrack_Quit();
     TEST_REPORT();
 }

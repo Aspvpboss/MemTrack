@@ -1,5 +1,3 @@
-#define MEMTRACK_IMPLEMENTATION
-
 #include "memtrack.h"
 #include "test_helpers.h"
 
@@ -105,8 +103,7 @@ static void test_MemTrack_Debug_calloc_tracked_and_freed(void) {
     TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 0);
 }
 
-/* Total tracked size should be num * size. NOTE: MemTrack_Debug_calloc currently
- * passes only `size` to append_allocation, so this fails until fixed. */
+/* Total tracked size must be num * size */
 static void test_MemTrack_Debug_calloc_tracks_total_size(void) {
     void *p = MemTrack_Debug_calloc(10, 4, __FILE__, __LINE__);
     TEST_ASSERT_NOT_NULL(p);
@@ -116,9 +113,9 @@ static void test_MemTrack_Debug_calloc_tracks_total_size(void) {
 }
 
 static void test_MemTrack_Debug_calloc_multiple_allocations(void) {
-    void *a = MemTrack_Debug_calloc(1, 8, __FILE__, __LINE__);
-    void *b = MemTrack_Debug_calloc(1, 16, __FILE__, __LINE__);
-    void *c = MemTrack_Debug_calloc(1, 32, __FILE__, __LINE__);
+    void *a = MemTrack_Debug_calloc(2, 4, __FILE__, __LINE__);
+    void *b = MemTrack_Debug_calloc(4, 4, __FILE__, __LINE__);
+    void *c = MemTrack_Debug_calloc(8, 4, __FILE__, __LINE__);
     TEST_ASSERT_NOT_NULL(a);
     TEST_ASSERT_NOT_NULL(b);
     TEST_ASSERT_NOT_NULL(c);
@@ -126,10 +123,13 @@ static void test_MemTrack_Debug_calloc_multiple_allocations(void) {
 
     /* free middle, head, then tail to exercise list unlinking */
     MemTrack_Debug_free(&b, __FILE__, __LINE__);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), (size_t)40);
     TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 1);
     MemTrack_Debug_free(&a, __FILE__, __LINE__);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), (size_t)32);
     TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 1);
     MemTrack_Debug_free(&c, __FILE__, __LINE__);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), (size_t)0);
     TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 0);
 }
 
@@ -145,6 +145,7 @@ static void test_MemTrack_Debug_calloc_then_realloc(void) {
     int *arr = (int *)MemTrack_Debug_calloc(4, sizeof(int), __FILE__, __LINE__);
     TEST_ASSERT_NOT_NULL(arr);
     if (!arr) return;
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 4 * sizeof(int));
 
     arr = (int *)MemTrack_Debug_realloc(arr, 8 * sizeof(int), __FILE__, __LINE__);
     TEST_ASSERT_NOT_NULL(arr);
@@ -152,6 +153,7 @@ static void test_MemTrack_Debug_calloc_then_realloc(void) {
 
     /* original calloc'd region must still be zero after growth */
     TEST_ASSERT_TRUE(all_zero(arr, 4 * sizeof(int)));
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 8 * sizeof(int));
     TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 1);
 
     MemTrack_Debug_free((void **)&arr, __FILE__, __LINE__);
@@ -176,6 +178,7 @@ static void test_t_calloc_macro(void) {
     TEST_ASSERT_NOT_NULL(arr);
     if (arr) {
         TEST_ASSERT_TRUE(all_zero(arr, 12 * sizeof(int)));
+        TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 12 * sizeof(int));
         TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 1);
     }
     t_free(arr);
@@ -198,8 +201,8 @@ static void test_t_calloc_struct(void) {
 }
 
 int main(void) {
-    /* Init once: MemTrack_Quit() returns early on an empty list without
-     * resetting `init`, so repeated Init/Quit cycles aren't reliable. */
+    printf("=== Running test_calloc ===\n");
+
     if (MemTrack_Init(fail_handler, &g_fail_count, true, false)) {
         fprintf(stderr, "MemTrack_Init failed\n");
         return 1;
