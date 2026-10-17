@@ -131,32 +131,34 @@ MEMTRACK_API char* MemTrack_Debug_strdup(const char* src, const char *file, int 
     //void *t_realloc(void *ptr, size_t size);
     #define t_realloc(ptr, size) MemTrack_Debug_realloc(ptr, size, __FILE__, __LINE__)
 
-    /*
-    void t_free(void **mem);
-    */
+    //void free(void *mem);
     #define t_free(ptr) MemTrack_Debug_free((void**)&ptr, __FILE__, __LINE__)
 
-    //char *t_strdup(char *str);
+    //char *t_strdup(const char *str);
     #define t_strdup(str) MemTrack_Debug_strdup(str, __FILE__, __LINE__)
- 
+
+    //char *t_strndup(const char *str, size_t size)
+    #define t_strndup(str, size) MemTrack_Debug_strndup(str, size, __FILE__, __LINE__)
+
 #elif defined(STDLIB_ALLOCATIONS)
  
     //void *t_malloc(size_t size);
-    #define t_malloc(size) malloc(size)
+    #define t_malloc(size) TRACK_MALLOC(size)
     
     //void *t_calloc(size_t num, size_t size);
-    #define t_calloc(num, size) calloc(num, size)
+    #define t_calloc(num, size) TRACK_CALLOC(num, size)
 
     //void *t_realloc(void *ptr, size_t size);
-    #define t_realloc(ptr, size) realloc(ptr, size)
+    #define t_realloc(ptr, size) TRACK_REALLOC(ptr, size)
 
-    /*
-    void free(void *mem);
-    */
-    #define t_free(ptr) free(ptr)
+    //void free(void *mem);
+    #define t_free(ptr) TRACK_FREE(ptr)
 
-    //char *t_strdup(char *str);
-    #define t_strdup(str) strdup(str)
+    //char *t_strdup(const char *str);
+    #define t_strdup(str) TRACK_STRDUP(str)
+
+    //char *t_strndup(const char *str, size_t size);
+    #define t_strndup(str, size) TRACK_STRNDUP(str, size)
 
 #else
 
@@ -169,14 +171,14 @@ MEMTRACK_API char* MemTrack_Debug_strdup(const char* src, const char *file, int 
     //void *t_calloc(size_t num, size_t size);
     #define t_calloc(num, size) MemTrack_Safe_calloc(num, size)
 
-    /*
-    void t_free(void **mem);
-    auto NULL's pointer
-    */
+    //void free(void *mem);
     #define t_free(ptr) MemTrack_Safe_free((void**)&ptr)
 
-    //char *t_strdup(char *str);
+    //char *t_strdup(const char *str);
     #define t_strdup(str)  MemTrack_Safe_strdup(str)
+
+    //char *t_strndup(const char *str, size_t size);
+    #define t_strndup(str, size) MemTrack_Safe_strndup(str, size)
 
 #endif
 
