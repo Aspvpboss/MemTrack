@@ -1,6 +1,9 @@
-# MemTrack v1.3.1
+# MemTrack v1.4.0
 
 A thread-safe, configurable C memory allocation tracker and leak detector. MemTrack can be used as an **stb-style single-header library** (`memtrack.h`) or built and linked as a **shared library** via CMake.
+
+## Changes
+
 
 ## Documentation
 

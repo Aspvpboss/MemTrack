@@ -14,14 +14,14 @@ int main(void) {
         t_free(p1);
         TEST_ASSERT_NULL(p1);
 
-        void *p2 = safe_malloc(64);
+        void *p2 = MemTrack_safe_malloc(64);
         TEST_ASSERT_NOT_NULL(p2);
-        safe_free(&p2);
+        MemTrack_safe_free(&p2);
         TEST_ASSERT_NULL(p2);
 
-        void *p3 = debug_malloc(64, __FILE__, __LINE__);
+        void *p3 = MemTrack_debug_malloc(64, __FILE__, __LINE__);
         TEST_ASSERT_NOT_NULL(p3);
-        debug_free(&p3, __FILE__, __LINE__);
+        MemTrack_debug_free(&p3, __FILE__, __LINE__);
         TEST_ASSERT_NULL(p3);
 
         // Leave an allocation so MemTrack_Quit tears down and resets info.init
@@ -42,17 +42,17 @@ int main(void) {
         TEST_ASSERT_EQ(p1, saved1); // Pointer should not be nulled
         TEST_ASSERT_NOT_NULL(p1);
 
-        void *p2 = safe_malloc(64);
+        void *p2 = MemTrack_safe_malloc(64);
         TEST_ASSERT_NOT_NULL(p2);
         void *saved2 = p2;
-        safe_free(&p2);
+        MemTrack_safe_free(&p2);
         TEST_ASSERT_EQ(p2, saved2);
         TEST_ASSERT_NOT_NULL(p2);
 
-        void *p3 = debug_malloc(64, __FILE__, __LINE__);
+        void *p3 = MemTrack_debug_malloc(64, __FILE__, __LINE__);
         TEST_ASSERT_NOT_NULL(p3);
         void *saved3 = p3;
-        debug_free(&p3, __FILE__, __LINE__);
+        MemTrack_debug_free(&p3, __FILE__, __LINE__);
         TEST_ASSERT_EQ(p3, saved3);
         TEST_ASSERT_NOT_NULL(p3);
 

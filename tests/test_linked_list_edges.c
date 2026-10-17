@@ -130,8 +130,8 @@ int main(void) {
 
         int dummy = 42;
         void *untracked = &dummy;
-        // debug_free should fail gracefully, print error, and not crash
-        debug_free(&untracked, __FILE__, __LINE__);
+        // MemTrack_debug_free should fail gracefully, print error, and not crash
+        MemTrack_debug_free(&untracked, __FILE__, __LINE__);
 
         // The tracked allocation should still be intact
         TEST_ASSERT_EQ(MemTrack_memory_usage(), 100);

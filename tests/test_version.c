@@ -12,8 +12,8 @@ int main(void) {
     int res = MemTrack_GetVersion(&major, &minor, &micro);
     TEST_ASSERT_EQ(res, 0);
     TEST_ASSERT_EQ(major, 1);
-    TEST_ASSERT_EQ(minor, 3);
-    TEST_ASSERT_EQ(micro, 1);
+    TEST_ASSERT_EQ(minor, 4);
+    TEST_ASSERT_EQ(micro, 0);
 
     // Invalid inputs: null major
     res = MemTrack_GetVersion(NULL, &minor, &micro);

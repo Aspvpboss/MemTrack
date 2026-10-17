@@ -6,8 +6,8 @@ static void test_version(void) {
     int major = -1, minor = -1, micro = -1;
     TEST_ASSERT_EQ(MemTrack_GetVersion(&major, &minor, &micro), 0);
     TEST_ASSERT_EQ(major, 1);
-    TEST_ASSERT_EQ(minor, 3);
-    TEST_ASSERT_EQ(micro, 1);
+    TEST_ASSERT_EQ(minor, 4);
+    TEST_ASSERT_EQ(micro, 0);
     TEST_ASSERT_EQ(MemTrack_GetVersion(NULL, &minor, &micro), 1);
     TEST_ASSERT_EQ(MemTrack_GetVersion(&major, NULL, &micro), 1);
     TEST_ASSERT_EQ(MemTrack_GetVersion(&major, &minor, NULL), 1);
@@ -95,7 +95,7 @@ static void test_linked_list_edges(void) {
     // Freeing untracked pointer
     int dummy = 99;
     void *untracked = &dummy;
-    debug_free(&untracked, __FILE__, __LINE__);
+    MemTrack_debug_free(&untracked, __FILE__, __LINE__);
     TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
 }
 

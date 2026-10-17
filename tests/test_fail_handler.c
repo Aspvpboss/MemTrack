@@ -43,7 +43,7 @@ int main(void) {
     TEST_ASSERT_EQ(g_handler_called, 2);
 
     // Also test through actual impossible allocation size ((size_t)-1)
-    void *p_fail = safe_malloc((size_t)-1);
+    void *p_fail = MemTrack_safe_malloc((size_t)-1);
     TEST_ASSERT_NULL(p_fail);
     TEST_ASSERT_EQ(g_handler_called, 3);
 

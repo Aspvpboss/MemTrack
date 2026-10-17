@@ -39,16 +39,16 @@ int main(void) {
     TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
     TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
 
-    // Test safe_malloc and safe_free directly
-    void *direct = safe_malloc(64);
+    // Test MemTrack_safe_malloc and MemTrack_safe_free directly
+    void *direct = MemTrack_safe_malloc(64);
     TEST_ASSERT_NOT_NULL(direct);
-    safe_free(&direct);
+    MemTrack_safe_free(&direct);
     TEST_ASSERT_NULL(direct);
 
-    // Test safe_strdup and safe_free directly
-    char *direct_dup = safe_strdup("Direct dup");
+    // Test MemTrack_safe_strdup and MemTrack_safe_free directly
+    char *direct_dup = MemTrack_safe_strdup("Direct dup");
     TEST_ASSERT_NOT_NULL(direct_dup);
-    safe_free((void **)&direct_dup);
+    MemTrack_safe_free((void **)&direct_dup);
     TEST_ASSERT_NULL(direct_dup);
 
     TEST_REPORT();

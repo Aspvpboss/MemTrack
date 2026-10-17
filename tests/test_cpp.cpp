@@ -14,7 +14,7 @@ int main() {
     }
 
     int major = 0, minor = 0, micro = 0;
-    if (MemTrack_GetVersion(&major, &minor, &micro) != 0 || major != 1 || minor != 3 || micro != 1) {
+    if (MemTrack_GetVersion(&major, &minor, &micro) != 0 || major != 1 || minor != 4 || micro != 0) {
         std::fprintf(stderr, "MemTrack_GetVersion failed\n");
         return 1;
     }

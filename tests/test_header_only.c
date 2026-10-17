@@ -13,8 +13,8 @@ int main(void) {
     res = MemTrack_GetVersion(&major, &minor, &micro);
     TEST_ASSERT_EQ(res, 0);
     TEST_ASSERT_EQ(major, 1);
-    TEST_ASSERT_EQ(minor, 3);
-    TEST_ASSERT_EQ(micro, 1);
+    TEST_ASSERT_EQ(minor, 4);
+    TEST_ASSERT_EQ(micro, 0);
 
     // Verify allocations and tracking
     int *nums = (int *)t_malloc(10 * sizeof(int));
