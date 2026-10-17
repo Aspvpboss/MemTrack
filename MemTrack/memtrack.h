@@ -89,6 +89,7 @@ MEMTRACK_API void* MemTrack_Safe_malloc(size_t size);
 MEMTRACK_API void* MemTrack_Safe_calloc(size_t num, size_t size);
 MEMTRACK_API void* MemTrack_Safe_realloc(void *memory, size_t size);
 MEMTRACK_API char* MemTrack_Safe_strdup(const char *src);
+MEMTRACK_API char* MemTrack_Safe_strndup(const char *src, size_t size);
 
 /*
     "debug" meaning it will track allocations and do these things during runtime if configured
@@ -101,7 +102,7 @@ MEMTRACK_API void* MemTrack_Debug_malloc(size_t size, const char *file, int line
 MEMTRACK_API void* MemTrack_Debug_calloc(size_t num, size_t size, const char *file, int line);
 MEMTRACK_API void* MemTrack_Debug_realloc(void *mem, size_t size, const char *file, int line);
 MEMTRACK_API char* MemTrack_Debug_strdup(const char* src, const char *file, int line);
-
+MEMTRACK_API char* MemTrack_Debug_strndup(const char *src, size_t size, const char *file, int line);
 
 #define TRACK_MALLOC(size) malloc(size)
 #define TRACK_REALLOC(mem, newsize) realloc(mem, newsize)
