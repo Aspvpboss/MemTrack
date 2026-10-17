@@ -14,8 +14,8 @@ int main() {
     }
 
     int major = 0, minor = 0, micro = 0;
-    if (MemTrack_GetVersion(&major, &minor, &micro) != 0 || major != 1 || minor != 4 || micro != 0) {
-        std::fprintf(stderr, "MemTrack_GetVersion failed\n");
+    if (MemTrack_Get_Version(&major, &minor, &micro) != 0 || major != 1 || minor != 4 || micro != 0) {
+        std::fprintf(stderr, "MemTrack_Get_Version failed\n");
         return 1;
     }
 
@@ -30,8 +30,8 @@ int main() {
         array[i] = i * 2;
     }
 
-    if (MemTrack_is_memory_leak() != 1) {
-        std::fprintf(stderr, "MemTrack_is_memory_leak expected 1\n");
+    if (MemTrack_Is_Memory_Leak() != 1) {
+        std::fprintf(stderr, "MemTrack_Is_Memory_Leak expected 1\n");
         return 1;
     }
 
@@ -53,7 +53,7 @@ int main() {
         return 1;
     }
 
-    if (MemTrack_is_memory_leak() != 0 || MemTrack_memory_usage() != 0) {
+    if (MemTrack_Is_Memory_Leak() != 0 || MemTrack_Memory_Usage() != 0) {
         std::fprintf(stderr, "leaks remain\n");
         return 1;
     }

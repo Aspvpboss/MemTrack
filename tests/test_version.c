@@ -9,26 +9,26 @@ int main(void) {
     int micro = -1;
 
     // Valid inputs
-    int res = MemTrack_GetVersion(&major, &minor, &micro);
+    int res = MemTrack_Get_Version(&major, &minor, &micro);
     TEST_ASSERT_EQ(res, 0);
     TEST_ASSERT_EQ(major, 1);
     TEST_ASSERT_EQ(minor, 4);
     TEST_ASSERT_EQ(micro, 0);
 
     // Invalid inputs: null major
-    res = MemTrack_GetVersion(NULL, &minor, &micro);
+    res = MemTrack_Get_Version(NULL, &minor, &micro);
     TEST_ASSERT_EQ(res, 1);
 
     // Invalid inputs: null minor
-    res = MemTrack_GetVersion(&major, NULL, &micro);
+    res = MemTrack_Get_Version(&major, NULL, &micro);
     TEST_ASSERT_EQ(res, 1);
 
     // Invalid inputs: null micro
-    res = MemTrack_GetVersion(&major, &minor, NULL);
+    res = MemTrack_Get_Version(&major, &minor, NULL);
     TEST_ASSERT_EQ(res, 1);
 
     // Invalid inputs: all null
-    res = MemTrack_GetVersion(NULL, NULL, NULL);
+    res = MemTrack_Get_Version(NULL, NULL, NULL);
     TEST_ASSERT_EQ(res, 1);
 
     TEST_REPORT();

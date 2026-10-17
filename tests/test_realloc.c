@@ -10,8 +10,8 @@ int main(void) {
     // Realloc on NULL pointer acts like malloc
     char *buf = (char *)t_realloc(NULL, 64);
     TEST_ASSERT_NOT_NULL(buf);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 64);
-    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 1);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 64);
+    TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 1);
 
     // Populate buffer
     strcpy(buf, "Hello MemTrack Realloc Test!");
@@ -20,7 +20,7 @@ int main(void) {
     // Realloc larger (grow from 64 to 256)
     buf = (char *)t_realloc(buf, 256);
     TEST_ASSERT_NOT_NULL(buf);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 256);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 256);
     // Data must be preserved
     TEST_ASSERT_STR_EQ(buf, "Hello MemTrack Realloc Test!");
 
@@ -31,20 +31,20 @@ int main(void) {
     // Realloc smaller (shrink to 30)
     buf = (char *)t_realloc(buf, 30);
     TEST_ASSERT_NOT_NULL(buf);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 30);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 30);
     buf[29] = '\0';
     TEST_ASSERT_EQ(strncmp(buf, "Hello MemTrack Realloc Test!", 28), 0);
 
     // Realloc same size (30 to 30)
     buf = (char *)t_realloc(buf, 30);
     TEST_ASSERT_NOT_NULL(buf);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 30);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 30);
 
     // Free
     t_free(buf);
     TEST_ASSERT_NULL(buf);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
-    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 0);
 
     TEST_REPORT();
 }

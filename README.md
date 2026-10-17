@@ -49,16 +49,16 @@ int MemTrack_Init(void (*malloc_err_handler)(void*), void *handler_arg, bool aut
 void MemTrack_Quit(void);
 
 // Returns current tracked heap usage in bytes.
-size_t MemTrack_memory_usage(void);
+size_t MemTrack_Memory_Usage(void);
 
 // Returns 1 if unfreed tracked allocations exist, or 0 if no leaks are present.
-int MemTrack_is_memory_leak(void);
+int MemTrack_Is_Memory_Leak(void);
 
 // Outputs detailed allocation and leak tracking info.
-void MemTrack_tracking_info(void);
+void MemTrack_Tracking_Info(void);
 
 // Populates major, minor, and micro version numbers. Returns 1 on failure.
-int MemTrack_GetVersion(int *major, int *minor, int *micro);
+int MemTrack_Get_Version(int *major, int *minor, int *micro);
 ```
 
 ### Allocation Macros
@@ -110,8 +110,8 @@ int main(void){
     void *result = NULL;
     pthread_join(thread, &result);
 
-    if(MemTrack_is_memory_leak())
-        MemTrack_tracking_info();
+    if(MemTrack_Is_Memory_Leak())
+        MemTrack_Tracking_Info();
 
     MemTrack_Quit();
     return 0;

@@ -45,8 +45,8 @@ int main(void){
     void *result = NULL;
     pthread_join(thread, &result);
 
-    if(MemTrack_is_memory_leak())
-        MemTrack_tracking_info();
+    if(MemTrack_Is_Memory_Leak())
+        MemTrack_Tracking_Info();
     
     MemTrack_Quit();
 

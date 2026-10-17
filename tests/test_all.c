@@ -4,60 +4,60 @@
 
 static void test_version(void) {
     int major = -1, minor = -1, micro = -1;
-    TEST_ASSERT_EQ(MemTrack_GetVersion(&major, &minor, &micro), 0);
+    TEST_ASSERT_EQ(MemTrack_Get_Version(&major, &minor, &micro), 0);
     TEST_ASSERT_EQ(major, 1);
     TEST_ASSERT_EQ(minor, 4);
     TEST_ASSERT_EQ(micro, 0);
-    TEST_ASSERT_EQ(MemTrack_GetVersion(NULL, &minor, &micro), 1);
-    TEST_ASSERT_EQ(MemTrack_GetVersion(&major, NULL, &micro), 1);
-    TEST_ASSERT_EQ(MemTrack_GetVersion(&major, &minor, NULL), 1);
-    TEST_ASSERT_EQ(MemTrack_GetVersion(NULL, NULL, NULL), 1);
+    TEST_ASSERT_EQ(MemTrack_Get_Version(NULL, &minor, &micro), 1);
+    TEST_ASSERT_EQ(MemTrack_Get_Version(&major, NULL, &micro), 1);
+    TEST_ASSERT_EQ(MemTrack_Get_Version(&major, &minor, NULL), 1);
+    TEST_ASSERT_EQ(MemTrack_Get_Version(NULL, NULL, NULL), 1);
 }
 
 static void test_tracking_and_usage(void) {
     char *p1 = (char *)t_malloc(100);
     TEST_ASSERT_NOT_NULL(p1);
     memset(p1, 'X', 100);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 100);
-    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 1);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 100);
+    TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 1);
 
     char *p2 = (char *)t_malloc(200);
     TEST_ASSERT_NOT_NULL(p2);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 300);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 300);
 
     t_free(p1);
     TEST_ASSERT_NULL(p1);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 200);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 200);
 
     t_free(p2);
     TEST_ASSERT_NULL(p2);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
-    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 0);
 
     void *null_ptr = NULL;
     t_free(null_ptr);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 0);
 }
 
 static void test_realloc(void) {
     char *buf = (char *)t_realloc(NULL, 32);
     TEST_ASSERT_NOT_NULL(buf);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 32);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 32);
 
     strcpy(buf, "test realloc string");
     buf = (char *)t_realloc(buf, 128);
     TEST_ASSERT_NOT_NULL(buf);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 128);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 128);
     TEST_ASSERT_STR_EQ(buf, "test realloc string");
 
     buf = (char *)t_realloc(buf, 16);
     TEST_ASSERT_NOT_NULL(buf);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 16);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 16);
 
     t_free(buf);
     TEST_ASSERT_NULL(buf);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
-    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 0);
 }
 
 static void test_strdup(void) {
@@ -65,14 +65,14 @@ static void test_strdup(void) {
     char *dup = t_strdup(orig);
     TEST_ASSERT_NOT_NULL(dup);
     TEST_ASSERT_STR_EQ(dup, orig);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), strlen(orig) + 1);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), strlen(orig) + 1);
 
     char *dup_null = t_strdup(NULL);
     TEST_ASSERT_NULL(dup_null);
 
     t_free(dup);
     TEST_ASSERT_NULL(dup);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 0);
 }
 
 static void test_linked_list_edges(void) {
@@ -80,23 +80,23 @@ static void test_linked_list_edges(void) {
     void *a = t_malloc(10);
     void *b = t_malloc(20);
     void *c = t_malloc(30);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 60);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 60);
 
     t_free(b); // middle
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 40);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 40);
 
     t_free(a); // head
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 30);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 30);
 
     t_free(c); // only remaining
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
-    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 0);
 
     // Freeing untracked pointer
     int dummy = 99;
     void *untracked = &dummy;
-    MemTrack_debug_free(&untracked, __FILE__, __LINE__);
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
+    MemTrack_Debug_free(&untracked, __FILE__, __LINE__);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 0);
 }
 
 static void *thread_worker(void *arg) {
@@ -119,8 +119,8 @@ static void test_threads(void) {
     for (int i = 0; i < 4; i++) {
         pthread_join(th[i], NULL);
     }
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
-    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), 0);
+    TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 0);
 }
 
 int main(void) {
@@ -150,7 +150,7 @@ int main(void) {
     test_threads();
 
     // Print tracking info safely (should be empty)
-    MemTrack_tracking_info();
+    MemTrack_Tracking_Info();
 
     printf("========================================\n");
     TEST_REPORT();
