@@ -14,8 +14,8 @@ int main() {
     }
 
     int major = 0, minor = 0, micro = 0;
-    if (MemTrack_GetVersion(&major, &minor, &micro) != 0 || major != 1 || minor != 3 || micro != 1) {
-        std::fprintf(stderr, "MemTrack_GetVersion failed\n");
+    if (MemTrack_Get_Version(&major, &minor, &micro) != 0 || major != 1 || minor != 4 || micro != 0) {
+        std::fprintf(stderr, "MemTrack_Get_Version failed\n");
         return 1;
     }
 
@@ -30,8 +30,8 @@ int main() {
         array[i] = i * 2;
     }
 
-    if (MemTrack_is_memory_leak() != 1) {
-        std::fprintf(stderr, "MemTrack_is_memory_leak expected 1\n");
+    if (MemTrack_Is_Memory_Leak() != 1) {
+        std::fprintf(stderr, "MemTrack_Is_Memory_Leak expected 1\n");
         return 1;
     }
 
@@ -53,24 +53,50 @@ int main() {
         return 1;
     }
 
-    if (MemTrack_is_memory_leak() != 0 || MemTrack_memory_usage() != 0) {
+    // Calloc in C++
+    int *zeroed = static_cast<int *>(t_calloc(50, sizeof(int)));
+    if (!zeroed) {
+        std::fprintf(stderr, "t_calloc failed\n");
+        return 1;
+    }
+    for (int i = 0; i < 50; i++) {
+        if (zeroed[i] != 0) {
+            std::fprintf(stderr, "t_calloc not zero-initialized\n");
+            return 1;
+        }
+    }
+    t_free(zeroed);
+    if (zeroed != NULL) {
+        std::fprintf(stderr, "t_free calloc auto-null failed\n");
+        return 1;
+    }
+
+    if (MemTrack_Is_Memory_Leak() != 0 || MemTrack_Memory_Usage() != 0) {
         std::fprintf(stderr, "leaks remain\n");
         return 1;
     }
 
-    // String duplication in C++
+    // String duplication in C++ (strdup and strndup)
     char *dup = t_strdup("C++ strdup test");
     if (!dup || std::strcmp(dup, "C++ strdup test") != 0) {
         std::fprintf(stderr, "t_strdup failed\n");
         return 1;
     }
 
-    t_free(dup);
-    if (dup != NULL) {
-        std::fprintf(stderr, "t_free dup auto-null failed\n");
+    char *ndup = t_strndup("C++ strndup test", 11);
+    if (!ndup || std::strcmp(ndup, "C++ strndup") != 0) {
+        std::fprintf(stderr, "t_strndup failed\n");
         return 1;
     }
 
+    t_free(dup);
+    t_free(ndup);
+    if (dup != NULL || ndup != NULL) {
+        std::fprintf(stderr, "t_free dup/ndup auto-null failed\n");
+        return 1;
+    }
+
+    MemTrack_Quit();
     std::printf("Result: PASSED\n");
     return 0;
 }

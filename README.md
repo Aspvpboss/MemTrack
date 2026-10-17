@@ -1,6 +1,11 @@
-# MemTrack v1.3.1
+# MemTrack v1.4.0
 
 A thread-safe, configurable C memory allocation tracker and leak detector. MemTrack can be used as an **stb-style single-header library** (`memtrack.h`) or built and linked as a **shared library** via CMake.
+
+## Changes
+* changed private and public API function and variables names to be more clear and consistent
+* added strndup
+* fixed issue with MemTrack_Quit() not reseting the internal init var 
 
 ## Documentation
 
@@ -16,19 +21,20 @@ Pass one of these flags to your compiler (e.g., `-DTRACK_ALLOCATIONS`) to config
 These are the macros you can configure to change what underlying functions MemTrack uses *(only works if you recompile the shared library or use the single-header library)*:
 
 ```c
-#define TRACK_PRINTF(fmt, ...)     fprintf(stderr, fmt, ##__VA_ARGS__)
-#define TRACK_MALLOC(size)         malloc(size)
+#define TRACK_MALLOC(size) malloc(size)
 #define TRACK_REALLOC(mem, newsize) realloc(mem, newsize)
-#define TRACK_FREE(ptr)            free(ptr)
-#define TRACK_STRLEN(str)          strlen(str)
-#define TRACK_STRCPY(dst, src)     strcpy(dst, src)
-#define TRACK_STRDUP(str)          strdup(str)
-#define TRACK_EXIT                 exit(EXIT_FAILURE)
-#define TRACK_MUTEX_TYPE           pthread_mutex_t
-#define TRACK_MUTEX_CREATE(mutex)  pthread_mutex_init(&mutex, NULL)
+#define TRACK_CALLOC(num, size) calloc(num, size)
+#define TRACK_FREE(ptr) free(ptr)
+#define TRACK_STRLEN(str) strlen(str)
+#define TRACK_STRDUP(str) strdup(str)
+#define TRACK_STRNDUP(str, size) MemTrack_strndup(str, size)
+#define TRACK_MEMCPY(dst, src, len) memcpy(dst, src, len)
+#define TRACK_EXIT exit(EXIT_FAILURE)
+#define TRACK_MUTEX_TYPE pthread_mutex_t 
+#define TRACK_MUTEX_CREATE(mutex) pthread_mutex_init(&mutex, NULL)
 #define TRACK_MUTEX_DESTROY(mutex) pthread_mutex_destroy(&mutex)
-#define TRACK_MUTEX_LOCK(mutex)    pthread_mutex_lock(mutex)
-#define TRACK_MUTEX_UNLOCK(mutex)  pthread_mutex_unlock(mutex)
+#define TRACK_MUTEX_LOCK(mutex) pthread_mutex_lock(&mutex)
+#define TRACK_MUTEX_UNLOCK(mutex) pthread_mutex_unlock(&mutex)
 ```
 
 ### Using MemTrack
@@ -39,23 +45,23 @@ If using `memtrack.h` as a single-header library, define `#define MEMTRACK_IMPLE
 
 ```c
 // Initializes MemTrack. Returns 1 on failure or if called more than once.
-// Note: If compiled with STDLIB_ALLOCATIONS, auto_null_pointers and memory_failure_abort have no effect.
-int MemTrack_Init(void (*malloc_fail_handler)(void*), void *handler_arg, bool auto_null_pointers, bool memory_failure_abort);
+// Note: If compiled with STDLIB_ALLOCATIONS, auto_null_pointers and abort_if_mem_error have no effect.
+int MemTrack_Init(void (*malloc_err_handler)(void*), void *handler_arg, bool auto_null_pointers, bool abort_if_mem_error);
 
 // Cleans up internal tracking resources. Call after all other threads have terminated.
 void MemTrack_Quit(void);
 
 // Returns current tracked heap usage in bytes.
-size_t MemTrack_memory_usage(void);
+size_t MemTrack_Memory_Usage(void);
 
 // Returns 1 if unfreed tracked allocations exist, or 0 if no leaks are present.
-int MemTrack_is_memory_leak(void);
+int MemTrack_Is_Memory_Leak(void);
 
 // Outputs detailed allocation and leak tracking info.
-void MemTrack_tracking_info(void);
+void MemTrack_Tracking_Info(void);
 
 // Populates major, minor, and micro version numbers. Returns 1 on failure.
-int MemTrack_GetVersion(int *major, int *minor, int *micro);
+int MemTrack_Get_Version(int *major, int *minor, int *micro);
 ```
 
 ### Allocation Macros
@@ -65,8 +71,10 @@ These macro definitions change depending on which compiler macro you define, but
 ```c
 void* t_malloc(size_t size);
 void* t_realloc(void *mem, size_t size);
+void* t_calloc(size_t num, size_t size);
 void  t_free(void *mem);
 char* t_strdup(const char *string);
+char* t_strndup(const char *str, size_t size);
 ```
 
 ## Example Program
@@ -107,8 +115,8 @@ int main(void){
     void *result = NULL;
     pthread_join(thread, &result);
 
-    if(MemTrack_is_memory_leak())
-        MemTrack_tracking_info();
+    if(MemTrack_Is_Memory_Leak())
+        MemTrack_Tracking_Info();
 
     MemTrack_Quit();
     return 0;

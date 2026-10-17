@@ -52,7 +52,20 @@ static void *worker_func(void *arg) {
             }
         }
 
-        // Test strdup
+        // Test calloc in thread
+        int *cal = (int *)t_calloc(16, sizeof(int));
+        if (!cal) {
+            data->success = 0;
+            t_free(buf);
+            break;
+        }
+        for (int j = 0; j < 16; j++) {
+            if (cal[j] != 0) {
+                data->success = 0;
+            }
+        }
+
+        // Test strdup and strndup in thread
         char msg[64];
         snprintf(msg, sizeof(msg), "thread-%d-iter-%d", data->thread_id, i);
         char *str = t_strdup(msg);
@@ -60,7 +73,14 @@ static void *worker_func(void *arg) {
             data->success = 0;
         }
 
+        char *nstr = t_strndup(msg, 6);
+        if (!nstr || strcmp(nstr, "thread") != 0) {
+            data->success = 0;
+        }
+
+        t_free(nstr);
         t_free(str);
+        t_free(cal);
         t_free(buf);
     }
 
@@ -83,10 +103,10 @@ int main(void) {
         TEST_ASSERT_EQ(rc, 0);
     }
 
-    // While threads are executing, call MemTrack_memory_usage and MemTrack_is_memory_leak
+    // While threads are executing, call MemTrack_Memory_Usage and MemTrack_Is_Memory_Leak
     for (int i = 0; i < 50; i++) {
-        (void)MemTrack_memory_usage();
-        (void)MemTrack_is_memory_leak();
+        (void)MemTrack_Memory_Usage();
+        (void)MemTrack_Is_Memory_Leak();
     }
 
     for (int i = 0; i < NUM_THREADS; i++) {
@@ -95,12 +115,9 @@ int main(void) {
     }
 
     // All threads joined, all allocations should be freed
-    TEST_ASSERT_EQ(MemTrack_memory_usage(), 0);
-    TEST_ASSERT_EQ(MemTrack_is_memory_leak(), 0);
+    TEST_ASSERT_EQ(MemTrack_Memory_Usage(), (size_t)0);
+    TEST_ASSERT_EQ(MemTrack_Is_Memory_Leak(), 0);
 
-    // Leave a small allocation so MemTrack_Quit tears down and resets info.init
-    void *cleanup = t_malloc(16);
-    TEST_ASSERT_NOT_NULL(cleanup);
     MemTrack_Quit();
 
     TEST_REPORT();
